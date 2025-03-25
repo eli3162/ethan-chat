@@ -15,10 +15,11 @@
             background-color: #f0f2f5;
             margin: 0;
             padding: 20px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, color 0.3s;
         }
         body.dark {
             background-color: #121212;
+            color: #ffffff;
         }
         .container {
             background: #fff;
@@ -38,6 +39,9 @@
             margin-bottom: 20px;
             font-size: 24px;
             color: #333;
+        }
+        h1.dark {
+            color: #fff;
         }
         input[type="text"], input[type="password"], input[type="text"]:focus, input[type="password"]:focus {
             width: calc(100% - 22px);
@@ -94,12 +98,13 @@
         }
         .message {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 10px;
             padding: 8px;
             border-radius: 8px;
             background-color: #e9ecef;
             transition: background-color 0.3s;
+            font-size: 14px;
         }
         .message.dark {
             background-color: #555;
@@ -107,6 +112,11 @@
         .message p {
             margin: 0;
             margin-left: 10px;
+            word-wrap: break-word;
+            color: #333;
+        }
+        .message.dark p {
+            color: #ddd;
         }
         .message .username {
             font-weight: bold;
@@ -115,10 +125,29 @@
             font-size: 12px;
             color: #666;
         }
+        .message .code-block {
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 5px;
+            margin-top: 5px;
+            font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro", monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        .message.dark .code-block {
+            background-color: #333;
+        }
         .avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
         }
         #messageInput {
             display: flex;
@@ -140,6 +169,9 @@
             margin-bottom: 10px;
             font-weight: bold;
             color: #333;
+        }
+        #displayName.dark {
+            color: #fff;
         }
         #nameInput {
             display: none;
@@ -251,6 +283,10 @@
                 <!-- Add more languages as needed -->
             </select>
         </label>
+        <label>
+            Upload Avatar:
+            <input type="file" id="avatarUpload" onchange="uploadAvatar()">
+        </label>
     </div>
 
     <!-- Include GUN -->
@@ -261,6 +297,21 @@
         const gun = GUN();
         const user = gun.user();
         let loggedInUser = "";
+        let avatarUrl = "";
+
+        // Detect default color scheme and apply
+        window.addEventListener('load', () => {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark');
+                document.querySelectorAll('.container').forEach(container => container.classList.add('dark'));
+                document.getElementById('chat').classList.add('dark');
+                document.querySelectorAll('.message').forEach(message => message.classList.add('dark'));
+                document.getElementById('settingsModal').classList.add('dark');
+                document.querySelectorAll('button').forEach(button => button.classList.add('dark'));
+                document.querySelectorAll('select').forEach(select => select.classList.add('dark'));
+                document.getElementById('darkThemeToggle').checked = true;
+            }
+        });
 
         // Show Create Account screen
         function showCreateAccount() {
@@ -283,6 +334,7 @@
                     alert("Invalid username or password. Please try again.");
                 } else {
                     loggedInUser = username;
+                    avatarUrl = `https://avatars.dicebear.com/api/initials/${username[0]}${username[1]}.svg`;
                     initializeChat();
                 }
             });
@@ -332,7 +384,6 @@
                 const timestamp = new Date().toISOString();
                 const username = user.is.alias;
                 const chat = gun.get('chat');
-                const avatarUrl = `https://avatars.dicebear.com/api/initials/${username}.svg`;
                 chat.set({ username, message, timestamp, avatarUrl });
                 document.getElementById('message').value = '';
             }
@@ -350,11 +401,25 @@
                 <img src="${message.avatarUrl}" alt="avatar" class="avatar">
                 <p>
                     <span class="username">${message.username}</span><br>
-                    ${message.message}<br>
+                    ${formatMessage(message.message)}<br>
                     <span class="timestamp">${new Date(message.timestamp).toLocaleTimeString()}</span>
                 </p>`;
             chatDiv.appendChild(messageDiv);
             chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        // Function to format message with code blocks
+        function formatMessage(message) {
+            if (message.includes('```')) {
+                const parts = message.split('```');
+                return parts.map((part, index) => {
+                    if (index % 2 === 1) {
+                        return `<div class="code-block">${part}</div>`;
+                    }
+                    return part;
+                }).join('');
+            }
+            return message;
         }
 
         // Function to clear the chat
@@ -408,6 +473,20 @@
                 document.getElementById('settingsModal').classList.remove('dark');
                 document.querySelectorAll('button').forEach(button => button.classList.remove('dark'));
                 document.querySelectorAll('select').forEach(select => select.classList.remove('dark'));
+            }
+        }
+
+        // Function to upload avatar
+        function uploadAvatar() {
+            const fileInput = document.getElementById('avatarUpload');
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                avatarUrl = reader.result;
+                alert('Avatar uploaded successfully!');
+            };
+            if (file) {
+                reader.readAsDataURL(file);
             }
         }
 
