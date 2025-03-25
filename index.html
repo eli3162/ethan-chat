@@ -1,1 +1,142 @@
-<p>TEST</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat App with GUN</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #login, #chatSection {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #chat {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        #messageInput {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+        #messageInput input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        #messageInput button {
+            padding: 10px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login">
+        <input type="text" id="username" placeholder="Enter username">
+        <input type="password" id="password" placeholder="Enter password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="chatSection" style="display:none;">
+        <div id="chat"></div>
+        <div id="messageInput">
+            <input type="text" id="message" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- Include GUN -->
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    <script>
+        // Initialize GUN
+        const gun = GUN();
+        const user = gun.user();
+
+        // Login function
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            user.auth(username, password, (ack) => {
+                if (ack.err) {
+                    user.create(username, password, (ack) => {
+                        if (ack.err) {
+                            alert(ack.err);
+                        } else {
+                            user.auth(username, password, (ack) => {
+                                if (ack.err) {
+                                    alert(ack.err);
+                                } else {
+                                    initializeChat();
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    initializeChat();
+                }
+            });
+        }
+
+        // Initialize chat after login
+        function initializeChat() {
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('chatSection').style.display = 'block';
+
+            const chat = gun.get('chat');
+
+            // Listen for new messages
+            chat.map().on((message, id) => {
+                if (message) {
+                    displayMessage(message);
+                }
+            });
+        }
+
+        // Function to send a message
+        function sendMessage() {
+            const message = document.getElementById('message').value;
+            if (message.trim() !== '') {
+                const timestamp = new Date().toISOString();
+                const username = user.is.alias;
+                const chat = gun.get('chat');
+                chat.set({ username, message, timestamp });
+                document.getElementById('message').value = '';
+            }
+        }
+
+        // Function to display a message
+        function displayMessage(message) {
+            const chatDiv = document.getElementById('chat');
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `${message.username} [${new Date(message.timestamp).toLocaleTimeString()}]: ${message.message}`;
+            chatDiv.appendChild(messageDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
