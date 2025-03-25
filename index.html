@@ -21,6 +21,22 @@
             background-color: #121212;
             color: #ffffff;
         }
+        body.dark ::selection {
+            background: #666;
+            color: #fff;
+        }
+        body.dark input {
+            background-color: #333;
+            color: #fff;
+        }
+        body.dark input::placeholder {
+            color: #fff;
+        }
+        body.dark #login h1,
+        body.dark #displayName,
+        body.dark #nameInput {
+            color: #fff;
+        }
         .container {
             background: #fff;
             border-radius: 8px;
@@ -43,7 +59,8 @@
         h1.dark {
             color: #fff;
         }
-        input[type="text"], input[type="password"], input[type="text"]:focus, input[type="password"]:focus {
+        input[type="text"], input[type="password"],
+        input[type="text"]:focus, input[type="password"]:focus {
             width: calc(100% - 22px);
             padding: 10px;
             margin-bottom: 10px;
@@ -74,7 +91,6 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background-color: #007bff;
         }
         button.dark {
             background-color: #555;
@@ -186,7 +202,7 @@
             background: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
             transition: background 0.3s, color 0.3s;
         }
@@ -227,6 +243,75 @@
         #settingsModal .close:hover {
             color: #0056b3;
         }
+        /* Chat Creation Screen */
+        #chatCreation {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 1100;
+            transition: background 0.3s, color 0.3s;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        #chatCreation input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+        }
+        /* Invite section will now use a dropdown instead of a text input */
+        #inviteSection {
+            display: none;
+            margin-bottom: 10px;
+        }
+        #inviteSection select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+        }
+        #inviteSection button {
+            padding: 10px;
+            margin-left: 5px;
+        }
+        #inviteList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #inviteList li {
+            background: #eee;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        body.dark #chatCreation {
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        body.dark #chatCreation input[type="text"],
+        body.dark #inviteSection select {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #ccc;
+        }
+        body.dark #chatCreation button,
+        body.dark #inviteSection button {
+            background-color: #555;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -258,6 +343,30 @@
             <button onclick="sendMessage()">Send</button>
         </div>
         <button id="clearChatButton" onclick="clearChat()" style="display:none;">Clear Chat</button>
+        <!-- Chat Creation Button -->
+        <button onclick="showChatCreation()">Chat Creation</button>
+    </div>
+
+    <!-- Chat Creation Screen -->
+    <div id="chatCreation">
+        <h2>Create New Chat</h2>
+        <input type="text" id="chatName" placeholder="Enter chat name">
+        <div>
+            <label>
+                <input type="radio" name="chatType" value="public" checked onchange="onChatTypeChange()"> Public
+            </label>
+            <label>
+                <input type="radio" name="chatType" value="private" onchange="onChatTypeChange()"> Private
+            </label>
+        </div>
+        <!-- Invite section appears only for private chats and now uses a dropdown -->
+        <div id="inviteSection">
+            <select id="inviteDropdown"></select>
+            <button onclick="addInvite()">Add Invite</button>
+            <ul id="inviteList"></ul>
+        </div>
+        <button onclick="createChat()">Create</button>
+        <button onclick="hideChatCreation()">Cancel</button>
     </div>
 
     <div id="settingsModal">
@@ -280,7 +389,6 @@
                 <option value="pt">Português</option>
                 <option value="it">Italiano</option>
                 <option value="ko">한국어</option>
-                <!-- Add more languages as needed -->
             </select>
         </label>
         <label>
@@ -296,8 +404,71 @@
         // Initialize GUN
         const gun = GUN();
         const user = gun.user();
+        // Global node for chat rooms
+        const chatrooms = gun.get('chatrooms');
         let loggedInUser = "";
         let avatarUrl = "";
+
+        // Global variable to store available users from Gun 'users' node
+        const availableUsers = {};
+
+        // Listen for users (assumes user accounts are stored under gun.get('users'))
+        gun.get('users').map().on((data, key) => {
+            if (data && data.alias) {
+                availableUsers[key] = data.alias;
+                populateInviteDropdown();
+            }
+        });
+
+        // Helper function: check if a user is already invited
+        function alreadyInvited(username) {
+            const inviteItems = document.querySelectorAll('#inviteList li');
+            for (const item of inviteItems) {
+                if (item.textContent === username) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Populate the invite dropdown with available users (excluding the logged-in user and already invited)
+        function populateInviteDropdown() {
+            const dropdown = document.getElementById('inviteDropdown');
+            dropdown.innerHTML = ""; // Clear existing options
+            for (const key in availableUsers) {
+                if (key !== loggedInUser && !alreadyInvited(availableUsers[key])) {
+                    const option = document.createElement('option');
+                    option.value = availableUsers[key];
+                    option.textContent = availableUsers[key];
+                    dropdown.appendChild(option);
+                }
+            }
+            // If no users available, add a placeholder option
+            if (dropdown.childElementCount === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "No users available";
+                dropdown.appendChild(option);
+            }
+        }
+
+        // Modified addInvite function using dropdown value
+        function addInvite() {
+            const dropdown = document.getElementById('inviteDropdown');
+            const inviteName = dropdown.value;
+            if (!inviteName) {
+                alert("Please select a user to invite.");
+                return;
+            }
+            if (alreadyInvited(inviteName)) {
+                alert("User already invited.");
+                return;
+            }
+            const li = document.createElement('li');
+            li.textContent = inviteName;
+            document.getElementById('inviteList').appendChild(li);
+            populateInviteDropdown();
+        }
 
         // Detect default color scheme and apply
         window.addEventListener('load', () => {
@@ -362,14 +533,10 @@
 
             const username = user.is.alias;
             document.getElementById('displayName').textContent = username;
-
             if (username === "admin") {
                 document.getElementById('clearChatButton').style.display = 'block';
             }
-
             const chat = gun.get('chat');
-
-            // Listen for new messages
             chat.map().on((message, id) => {
                 if (message) {
                     displayMessage(message);
@@ -496,11 +663,66 @@
             modal.classList.toggle('active');
         }
 
-        // Function to change language (placeholder, implement as needed)
+        // Function to change language (placeholder)
         function changeLanguage() {
             const language = document.getElementById('languageSelect').value;
             alert(`Language changed to ${language}`);
-            // Implement language change logic here
+        }
+
+        // Chat Creation Functions
+
+        // Show chat creation screen
+        function showChatCreation() {
+            document.getElementById('chatCreation').style.display = 'block';
+            populateInviteDropdown();
+        }
+        // Hide chat creation screen
+        function hideChatCreation() {
+            document.getElementById('chatCreation').style.display = 'none';
+            document.getElementById('inviteList').innerHTML = '';
+            document.getElementById('inviteSection').style.display = 'none';
+            document.getElementById('chatName').value = '';
+            const radios = document.getElementsByName('chatType');
+            radios.forEach(radio => radio.checked = (radio.value === 'public'));
+        }
+        // Called when the chat type changes
+        function onChatTypeChange() {
+            const type = document.querySelector('input[name="chatType"]:checked').value;
+            if (type === "private") {
+                document.getElementById('inviteSection').style.display = 'block';
+            } else {
+                document.getElementById('inviteSection').style.display = 'none';
+            }
+        }
+        // Create chat room with given options
+        function createChat() {
+            const chatName = document.getElementById('chatName').value.trim();
+            if (chatName === "") {
+                alert("Please enter a chat name.");
+                return;
+            }
+            const type = document.querySelector('input[name="chatType"]:checked').value;
+            let invites = [];
+            if (type === "private") {
+                const inviteItems = document.querySelectorAll("#inviteList li");
+                inviteItems.forEach(item => {
+                    invites.push(item.textContent);
+                });
+                if (invites.length === 0) {
+                    alert("For private chats, please invite at least one user.");
+                    return;
+                }
+            }
+            const timestamp = new Date().toISOString();
+            chatrooms.set({
+                name: chatName,
+                createdBy: user.is.alias,
+                createdAt: timestamp,
+                type: type,
+                invites: invites
+            });
+            alert(`Chat "${chatName}" created successfully!`);
+            hideChatCreation();
         }
     </script>
 
