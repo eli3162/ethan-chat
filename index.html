@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethan Chat</title>
+    <title>Lithium Chat</title>
     <style>
         body {
             font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro", monospace;
@@ -157,13 +157,8 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #007bff;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
+            object-fit: cover;
+            background-color: transparent;
         }
         #messageInput {
             display: flex;
@@ -312,6 +307,294 @@
             background-color: #555;
             color: #fff;
         }
+        .message-container {
+            margin-bottom: 15px;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        .reaction-button, .reply-button {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 2px 5px;
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .reaction-button:hover, .reply-button:hover {
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .reactions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .reaction {
+            background-color: #e6f3ff;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #0066cc;
+        }
+
+        body.dark .reaction {
+            background-color: #1a3d5c;
+            color: #66b3ff;
+        }
+        .replies {
+            margin-left: 40px;
+            border-left: 2px solid #eee;
+            padding-left: 10px;
+        }
+
+        .reply-input {
+            display: none;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        /* Dark theme support */
+        body.dark .reaction-button, 
+        body.dark .reply-button {
+            color: #aaa;
+        }
+
+        body.dark .reaction-button:hover, 
+        body.dark .reply-button:hover {
+            background-color: #444;
+        }
+
+        body.dark .reaction {
+            background-color: #444;
+        }
+
+        body.dark .replies {
+            border-left-color: #444;
+        }
+        // Add after your existing styles in the <style> tag
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .sidebar {
+            width: 60px;
+            background: #2f2f2f;
+            height: 100%;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: width 0.3s;
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 5px 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-button:hover {
+            background: #404040;
+        }
+
+        .sidebar-button span {
+            display: none;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+
+        .sidebar:hover .sidebar-button {
+            width: 180px;
+            border-radius: 8px;
+            justify-content: flex-start;
+            padding-left: 15px;
+        }
+
+        .sidebar:hover .sidebar-button span {
+            display: block;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f0f2f5;
+        }
+
+        body.dark .sidebar {
+            background: #1f1f1f;
+        }
+
+        body.dark .sidebar-button:hover {
+            background: #2f2f2f;
+        }
+        /* Add this in your <style> tag */
+        #inviteSearch {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        body.dark #inviteSearch {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #ccc;
+        }
+        /* Add to your existing style section */
+        #previewArea {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .preview-item {
+            position: relative;
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .preview-item img,
+        .preview-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remove-preview {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message-attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        body.dark .preview-item {
+            background: #333;
+        }
+        /* Add to your existing style section */
+        .replies {
+            margin-left: 40px;
+            border-left: 2px solid #eee;
+            padding-left: 10px;
+            margin-top: 10px;
+        }
+
+        .reply {
+            display: flex;
+            align-items: start;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+        }
+
+        .reply .avatar {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        .reply-content {
+            flex: 1;
+        }
+
+        .reply .username {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .reply p {
+            margin: 4px 0;
+            font-size: 0.9em;
+        }
+
+        .reply .timestamp {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        body.dark .replies {
+            border-left-color: #444;
+        }
+
+        body.dark .reply {
+            background-color: #383838;
+        }
+
+        body.dark .reply .timestamp {
+            color: #999;
+        }
+
+        .reply-input {
+            margin-top: 8px;
+            margin-left: 40px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .reply-input input {
+            flex: 1;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        body.dark .reply-input input {
+            background-color: #333;
+            color: #fff;
+            border-color: #444;
+        }
     </style>
 </head>
 <body>
@@ -340,8 +623,11 @@
         <div id="chat"></div>
         <div id="messageInput">
             <input type="text" id="message" placeholder="Type a message...">
+            <input type="file" id="fileInput" style="display: none" multiple accept="image/*,video/*">
+            <button onclick="document.getElementById('fileInput').click()">📎</button>
             <button onclick="sendMessage()">Send</button>
         </div>
+        <div id="previewArea"></div>
         <button id="clearChatButton" onclick="clearChat()" style="display:none;">Clear Chat</button>
         <!-- Chat Creation Button -->
         <button onclick="showChatCreation()">Chat Creation</button>
@@ -361,6 +647,8 @@
         </div>
         <!-- Invite section appears only for private chats and now uses a dropdown -->
         <div id="inviteSection">
+            <!-- Add this inside the inviteSection div, before the select element -->
+            <input type="text" id="inviteSearch" placeholder="Search users..." onkeyup="filterInviteDropdown()">
             <select id="inviteDropdown"></select>
             <button onclick="addInvite()">Add Invite</button>
             <ul id="inviteList"></ul>
@@ -373,22 +661,13 @@
         <span class="close" onclick="toggleSettings()">&times;</span>
         <h2>Settings</h2>
         <label>
-            Dark Theme:
+            Dark Theme(Experimental):
             <input type="checkbox" id="darkThemeToggle" onchange="toggleDarkTheme()">
         </label>
         <label>
             Language:
             <select id="languageSelect" onchange="changeLanguage()">
                 <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
-                <option value="zh">中文</option>
-                <option value="ja">日本語</option>
-                <option value="ru">Русский</option>
-                <option value="pt">Português</option>
-                <option value="it">Italiano</option>
-                <option value="ko">한국어</option>
             </select>
         </label>
         <label>
@@ -402,12 +681,23 @@
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script>
         // Initialize GUN
-        const gun = GUN();
+        // Replace the existing GUN initialization with:
+        // filepath: /home/nas/Documents/index.html
+        const gun = GUN({
+            peers: [
+                'http://localhost:8765/gun' // Local GUN server
+            ],
+            localStorage: false,  // Disable localStorage to prevent conflicts
+            radisk: false        // Disable RadiskDB for browser-only operation
+        });
+        let messageRefreshInterval;
+        const CHAT_ID = 'lithium';  // Our specific chat identifier
         const user = gun.user();
         // Global node for chat rooms
         const chatrooms = gun.get('chatrooms');
         let loggedInUser = "";
         let avatarUrl = "";
+        let attachments = [];
 
         // Global variable to store available users from Gun 'users' node
         const availableUsers = {};
@@ -431,27 +721,12 @@
             return false;
         }
 
-        // Populate the invite dropdown with available users (excluding the logged-in user and already invited)
+                // Populate the invite dropdown with available users (excluding the logged-in user and already invited)
+        // Replace the existing populateInviteDropdown function
         function populateInviteDropdown() {
-            const dropdown = document.getElementById('inviteDropdown');
-            dropdown.innerHTML = ""; // Clear existing options
-            for (const key in availableUsers) {
-                if (key !== loggedInUser && !alreadyInvited(availableUsers[key])) {
-                    const option = document.createElement('option');
-                    option.value = availableUsers[key];
-                    option.textContent = availableUsers[key];
-                    dropdown.appendChild(option);
-                }
-            }
-            // If no users available, add a placeholder option
-            if (dropdown.childElementCount === 0) {
-                const option = document.createElement('option');
-                option.value = "";
-                option.textContent = "No users available";
-                dropdown.appendChild(option);
-            }
+            const searchText = document.getElementById('inviteSearch')?.value.toLowerCase() || '';
+            filterInviteDropdown();
         }
-
         // Modified addInvite function using dropdown value
         function addInvite() {
             const dropdown = document.getElementById('inviteDropdown');
@@ -495,8 +770,7 @@
             document.getElementById('login').style.display = 'block';
             document.getElementById('createAccount').style.display = 'none';
         }
-
-        // Login function
+        // Update the login function
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -505,12 +779,14 @@
                     alert("Invalid username or password. Please try again.");
                 } else {
                     loggedInUser = username;
-                    avatarUrl = `https://avatars.dicebear.com/api/initials/${username[0]}${username[1]}.svg`;
-                    initializeChat();
+                    // Get stored avatar URL or use default
+                    user.get('avatar').once((data) => {
+                        avatarUrl = data || "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png";
+                        initializeChat();
+                    });
                 }
             });
         }
-
         // Create Account function
         function createAccount() {
             const newUsername = document.getElementById('newUsername').value;
@@ -524,46 +800,120 @@
                 }
             });
         }
-
-        // Initialize chat after login
         function initializeChat() {
             document.getElementById('login').style.display = 'none';
             document.getElementById('createAccount').style.display = 'none';
             document.getElementById('chatSection').style.display = 'block';
-
             const username = user.is.alias;
             document.getElementById('displayName').textContent = username;
-            if (username === "admin") {
+            if (username === "ethan") {
                 document.getElementById('clearChatButton').style.display = 'block';
             }
+
+            // Clear existing messages
+            document.getElementById('chat').innerHTML = '';
+
+            // Subscribe to all chat messages and filter for our chat
             const chat = gun.get('chat');
-            chat.map().on((message, id) => {
-                if (message) {
-                    displayMessage(message);
+            chat.map().once((message, id) => {
+                if (message &&
+                    message.timestamp &&
+                    message.chatId === CHAT_ID &&
+                    !document.getElementById(`msg-${id}`)) {
+                    displayMessage(message, id);
                 }
             });
         }
 
-        // Function to send a message
+        // Update displayMessage to handle message IDs
+        function displayMessage(message, messageId) {
+            const chatDiv = document.getElementById('chat');
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+            messageContainer.id = `msg-${messageId}`; // Add ID to prevent duplicates
+            
+            // Rest of your displayMessage code...
+        }
+        // Update sendMessage function:
+        // Update the sendMessage function
         function sendMessage() {
             const message = document.getElementById('message').value;
             if (message.trim() !== '') {
                 const timestamp = new Date().toISOString();
                 const username = user.is.alias;
+                const messageId = `${username}-${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
                 const chat = gun.get('chat');
-                chat.set({ username, message, timestamp, avatarUrl });
+                chat.get(messageId).put({
+                    username,
+                    message,
+                    timestamp,
+                    avatarUrl,
+                    id: messageId,
+                    chatId: CHAT_ID  // Add chat identifier
+                });
                 document.getElementById('message').value = '';
             }
         }
-
         // Function to display a message
-        function displayMessage(message) {
+        // Replace the existing displayMessage function
+        // Add this function to load replies
+        function loadReplies(messageId) {
+            const chat = gun.get('chat');
+            const repliesDiv = document.getElementById(`replies-${messageId}`);
+            
+            chat.get(messageId).get('replies').map().once((reply, replyId) => {
+                if (reply && !document.getElementById(`reply-${replyId}`)) {
+                    displayReply(reply, replyId, repliesDiv);
+                }
+            });
+            chat.get(messageId).get('likes').map().on((liked, userAlias) => {
+                const reactionsDiv = document.getElementById(`reactions-${messageId}`);
+                if (!reactionsDiv) return; // Ensure the reactionsDiv exists
+
+                // Count the number of likes
+                chat.get(messageId).get('likes').once((likes) => {
+                    const likeCount = Object.keys(likes || {}).filter(key => likes[key]).length;
+
+                    // Update the like count display
+                    reactionsDiv.innerHTML = likeCount > 0 ? `👍 ${likeCount}` : '';
+                });
+            });
+        }
+
+        // Add this function to display replies
+        function displayReply(reply, replyId, repliesDiv) {
+            const replyContainer = document.createElement('div');
+            replyContainer.id = `reply-${replyId}`;
+            replyContainer.classList.add('reply');
+            if (document.body.classList.contains('dark')) {
+                replyContainer.classList.add('dark');
+            }
+
+            replyContainer.innerHTML = `
+                <img src="${reply.avatarUrl}" alt="avatar" class="avatar">
+                <div class="reply-content">
+                    <span class="username">${reply.username}</span>
+                    <p>${formatMessage(reply.message)}</p>
+                    <span class="timestamp">${new Date(reply.timestamp).toLocaleTimeString()}</span>
+                </div>
+            `;
+            
+            repliesDiv.appendChild(replyContainer);
+        }
+
+        // Update the displayMessage function to load replies
+        function displayMessage(message, messageId) {
             const chatDiv = document.getElementById('chat');
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+            messageContainer.id = `msg-${messageId}`;
+
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
             if (document.body.classList.contains('dark')) {
                 messageDiv.classList.add('dark');
             }
+
             messageDiv.innerHTML = `
                 <img src="${message.avatarUrl}" alt="avatar" class="avatar">
                 <p>
@@ -571,8 +921,61 @@
                     ${formatMessage(message.message)}<br>
                     <span class="timestamp">${new Date(message.timestamp).toLocaleTimeString()}</span>
                 </p>`;
-            chatDiv.appendChild(messageDiv);
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.classList.add('message-actions');
+
+            const repliesDiv = document.createElement('div');
+            repliesDiv.classList.add('replies');
+            repliesDiv.id = `replies-${messageId}`;
+
+            const replyInput = document.createElement('div');
+            replyInput.classList.add('reply-input');
+            replyInput.id = `reply-input-${messageId}`;
+            replyInput.style.display = 'none';
+            replyInput.innerHTML = `
+                <input type="text" placeholder="Type your reply...">
+                <button onclick="sendReply('${messageId}')">Send</button>
+            `;
+
+            messageContainer.appendChild(messageDiv);
+            messageContainer.appendChild(actionsDiv);
+            messageContainer.appendChild(replyInput);
+            messageContainer.appendChild(repliesDiv);
+
+            chatDiv.appendChild(messageContainer);
             chatDiv.scrollTop = chatDiv.scrollHeight;
+
+            // Load existing replies
+            loadReplies(messageId);
+        }
+// Add these styles to make replies look better
+        // Add these functions after the displayMessage function
+        // Replace the addReaction function with:
+        function showReplyInput(messageId) {
+            const replyInput = document.getElementById(`reply-input-${messageId}`);
+            replyInput.style.display = replyInput.style.display === 'none' ? 'block' : 'none';
+        }
+        function sendReply(messageId) {
+            const replyInput = document.getElementById(`reply-input-${messageId}`).querySelector('input');
+            const replyText = replyInput.value.trim();
+            
+            if (replyText) {
+                const timestamp = new Date().toISOString();
+                const replyId = `reply-${user.is.alias}-${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
+                
+                const chat = gun.get('chat');
+                chat.get(messageId).get('replies').get(replyId).put({
+                    username: user.is.alias,
+                    message: replyText,
+                    timestamp: timestamp,
+                    avatarUrl: avatarUrl,
+                    chatId: CHAT_ID  // Add chat identifier to replies
+                });
+                
+                replyInput.value = '';
+                showReplyInput(messageId);
+            }
         }
 
         // Function to format message with code blocks
@@ -593,11 +996,12 @@
         function clearChat() {
             const chat = gun.get('chat');
             chat.map().once((message, id) => {
-                chat.get(id).put(null);
+                if (message && message.chatId === CHAT_ID) {
+                    chat.get(id).put(null);
+                }
             });
             document.getElementById('chat').innerHTML = '';
         }
-
         // Function to edit the name
         function editName() {
             const displayName = document.getElementById('displayName');
@@ -621,35 +1025,41 @@
             displayName.style.display = 'block';
         }
 
-        // Function to toggle dark theme
-        function toggleDarkTheme() {
-            const isChecked = document.getElementById('darkThemeToggle').checked;
-            if (isChecked) {
-                document.body.classList.add('dark');
-                document.querySelectorAll('.container').forEach(container => container.classList.add('dark'));
-                document.getElementById('chat').classList.add('dark');
-                document.querySelectorAll('.message').forEach(message => message.classList.add('dark'));
-                document.getElementById('settingsModal').classList.add('dark');
-                document.querySelectorAll('button').forEach(button => button.classList.add('dark'));
-                document.querySelectorAll('select').forEach(select => select.classList.add('dark'));
-            } else {
-                document.body.classList.remove('dark');
-                document.querySelectorAll('.container').forEach(container => container.classList.remove('dark'));
-                document.getElementById('chat').classList.remove('dark');
-                document.querySelectorAll('.message').forEach(message => message.classList.remove('dark'));
-                document.getElementById('settingsModal').classList.remove('dark');
-                document.querySelectorAll('button').forEach(button => button.classList.remove('dark'));
-                document.querySelectorAll('select').forEach(select => select.classList.remove('dark'));
+            // Function to toggle dark theme
+    // Replace the existing toggleDarkTheme function
+    function toggleDarkTheme() {
+        const isChecked = !document.body.classList.contains('dark'); // Toggle based on current state
+        if (isChecked) {
+            document.body.classList.add('dark');
+            document.querySelectorAll('.container').forEach(container => container.classList.add('dark'));
+            document.getElementById('chat').classList.add('dark');
+            document.querySelectorAll('.message').forEach(message => message.classList.add('dark'));
+            document.getElementById('settingsModal').classList.add('dark');
+            document.querySelectorAll('select').forEach(select => select.classList.add('dark'));
+            if (document.getElementById('darkThemeToggle')) {
+                document.getElementById('darkThemeToggle').checked = true;
+            }
+        } else {
+            document.body.classList.remove('dark');
+            document.querySelectorAll('.container').forEach(container => container.classList.remove('dark'));
+            document.getElementById('chat').classList.remove('dark');
+            document.querySelectorAll('.message').forEach(message => message.classList.remove('dark'));
+            document.getElementById('settingsModal').classList.remove('dark');
+            document.querySelectorAll('select').forEach(select => select.classList.remove('dark'));
+            if (document.getElementById('darkThemeToggle')) {
+                document.getElementById('darkThemeToggle').checked = false;
             }
         }
-
-        // Function to upload avatar
+    }
+        // Update the uploadAvatar function
         function uploadAvatar() {
             const fileInput = document.getElementById('avatarUpload');
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onloadend = () => {
                 avatarUrl = reader.result;
+                // Store avatar URL in user data
+                user.get('avatar').put(avatarUrl);
                 alert('Avatar uploaded successfully!');
             };
             if (file) {
@@ -723,6 +1133,106 @@
             });
             alert(`Chat "${chatName}" created successfully!`);
             hideChatCreation();
+        }
+        // Add this after your populateInviteDropdown function
+        function filterInviteDropdown() {
+            const searchText = document.getElementById('inviteSearch').value.toLowerCase();
+            const dropdown = document.getElementById('inviteDropdown');
+            dropdown.innerHTML = ""; // Clear existing options
+
+            // Filter and add matching users
+            for (const key in availableUsers) {
+                const username = availableUsers[key];
+                if (
+                    key !== loggedInUser && 
+                    !alreadyInvited(username) && 
+                    username.toLowerCase().includes(searchText)
+                ) {
+                    const option = document.createElement('option');
+                    option.value = username;
+                    option.textContent = username;
+                    dropdown.appendChild(option);
+                }
+            }
+
+            // Add placeholder if no results
+            if (dropdown.childElementCount === 0) {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = searchText ? "No matching users" : "No users available";
+                dropdown.appendChild(option);
+            }
+        }
+        // Add file input event listener
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            const previewArea = document.getElementById('previewArea');
+            
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                
+                reader.onload = function(e) {
+                    if (file.type.startsWith('image/')) {
+                        previewItem.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview">
+                            <button class="remove-preview" onclick="removePreview(this)">×</button>
+                        `;
+                        attachments.push({ type: 'image', data: e.target.result });
+                    } else if (file.type.startsWith('video/')) {
+                        previewItem.innerHTML = `
+                            <video src="${e.target.result}" controls></video>
+                            <button class="remove-preview" onclick="removePreview(this)">×</button>
+                        `;
+                        attachments.push({ type: 'video', data: e.target.result });
+                    }
+                    previewArea.appendChild(previewItem);
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removePreview(button) {
+            const previewItem = button.parentElement;
+            const index = Array.from(previewItem.parentElement.children).indexOf(previewItem);
+            attachments.splice(index, 1);
+            previewItem.remove();
+        }
+        // Add this function to load replies
+        function loadReplies(messageId) {
+            const chat = gun.get('chat');
+            const repliesDiv = document.getElementById(`replies-${messageId}`);
+            
+            chat.get(messageId).get('replies').map().once((reply, replyId) => {
+                if (reply && !document.getElementById(`reply-${replyId}`)) {
+                    displayReply(reply, replyId, repliesDiv);
+                }
+            });
+        }
+
+        // Add this function to display replies
+        function displayReply(reply, replyId, repliesDiv) {
+            const replyContainer = document.createElement('div');
+            replyContainer.id = `reply-${replyId}`;
+            replyContainer.classList.add('reply');
+            if (document.body.classList.contains('dark')) {
+                replyContainer.classList.add('dark');
+            }
+
+            replyContainer.innerHTML = `
+                <img src="${reply.avatarUrl}" alt="avatar" class="avatar">
+                <div class="reply-content">
+                    <span class="username">${reply.username}</span>
+                    <p>${formatMessage(reply.message)}</p>
+                    <span class="timestamp">${new Date(reply.timestamp).toLocaleTimeString()}</span>
+                </div>
+            `;
+            
+            repliesDiv.appendChild(replyContainer);
         }
     </script>
 
