@@ -595,6 +595,28 @@
             color: #fff;
             border-color: #444;
         }
+        .reply-button {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            padding: 2px 5px;
+            font-size: 12px;
+            margin: 0;
+            transition: color 0.3s;
+        }
+
+        .reply-button:hover {
+            color: #0056b3;
+        }
+
+        body.dark .reply-button {
+            color: #66b3ff;
+        }
+
+        body.dark .reply-button:hover {
+            color: #3399ff;
+        }
     </style>
 </head>
 <body>
@@ -897,11 +919,10 @@
                     <span class="timestamp">${new Date(reply.timestamp).toLocaleTimeString()}</span>
                 </div>
             `;
-            
+
             repliesDiv.appendChild(replyContainer);
         }
-
-        // Update the displayMessage function to load replies
+        // Update the displayMessage function to load repliesM
         function displayMessage(message, messageId) {
             const chatDiv = document.getElementById('chat');
             const messageContainer = document.createElement('div');
@@ -924,6 +945,13 @@
 
             const actionsDiv = document.createElement('div');
             actionsDiv.classList.add('message-actions');
+
+            // Add the Reply button
+            const replyButton = document.createElement('button');
+            replyButton.classList.add('reply-button');
+            replyButton.textContent = 'Reply';
+            replyButton.onclick = () => showReplyInput(messageId);
+            actionsDiv.appendChild(replyButton);
 
             const repliesDiv = document.createElement('div');
             repliesDiv.classList.add('replies');
@@ -959,20 +987,19 @@
         function sendReply(messageId) {
             const replyInput = document.getElementById(`reply-input-${messageId}`).querySelector('input');
             const replyText = replyInput.value.trim();
-            
+
             if (replyText) {
                 const timestamp = new Date().toISOString();
                 const replyId = `reply-${user.is.alias}-${timestamp}-${Math.random().toString(36).substr(2, 9)}`;
-                
+
                 const chat = gun.get('chat');
                 chat.get(messageId).get('replies').get(replyId).put({
                     username: user.is.alias,
                     message: replyText,
                     timestamp: timestamp,
                     avatarUrl: avatarUrl,
-                    chatId: CHAT_ID  // Add chat identifier to replies
                 });
-                
+
                 replyInput.value = '';
                 showReplyInput(messageId);
             }
@@ -1206,33 +1233,12 @@
         function loadReplies(messageId) {
             const chat = gun.get('chat');
             const repliesDiv = document.getElementById(`replies-${messageId}`);
-            
-            chat.get(messageId).get('replies').map().once((reply, replyId) => {
+
+            chat.get(messageId).get('replies').map().on((reply, replyId) => {
                 if (reply && !document.getElementById(`reply-${replyId}`)) {
                     displayReply(reply, replyId, repliesDiv);
                 }
             });
-        }
-
-        // Add this function to display replies
-        function displayReply(reply, replyId, repliesDiv) {
-            const replyContainer = document.createElement('div');
-            replyContainer.id = `reply-${replyId}`;
-            replyContainer.classList.add('reply');
-            if (document.body.classList.contains('dark')) {
-                replyContainer.classList.add('dark');
-            }
-
-            replyContainer.innerHTML = `
-                <img src="${reply.avatarUrl}" alt="avatar" class="avatar">
-                <div class="reply-content">
-                    <span class="username">${reply.username}</span>
-                    <p>${formatMessage(reply.message)}</p>
-                    <span class="timestamp">${new Date(reply.timestamp).toLocaleTimeString()}</span>
-                </div>
-            `;
-            
-            repliesDiv.appendChild(replyContainer);
         }
     </script>
 
